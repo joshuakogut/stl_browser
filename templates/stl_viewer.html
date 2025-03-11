@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View STL File</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <h1>Viewing: {{ filename }}</h1>
+    <div id="stl-viewer"></div>
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('stl-viewer').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+        const loader = new THREE.STLLoader();
+        loader.load("{% static '/' %}{{ filename }}", function (geometry) {
+            const material = new THREE.MeshNormalMaterial();
+            const mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+
+            // Compute the bounding box of the geometry
+            const box = new THREE.Box3().setFromObject(mesh);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+
+            // Center the mesh
+            mesh.position.x -= center.x;
+            mesh.position.y -= center.y;
+            mesh.position.z -= center.z;
+
+            // Adjust the camera position to view from the side
+            camera.position.set(size.x * 1.5, size.y * 1.5, size.z * 1.5);
+            camera.lookAt(center);
+
+            // Update controls
+            controls.update();
+
+            // Render the scene once
+            renderer.render(scene, camera);
+        });
+
+        // Add animation loop to update controls
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
