@@ -37,6 +37,9 @@
             mesh.position.y -= center.y;
             mesh.position.z -= center.z;
 
+            // Rotate the mesh to sit flat
+            mesh.rotation.x = -Math.PI / 2;
+
             // Adjust the camera position to view from the side
             camera.position.set(size.x * 1.5, size.y * 1.5, size.z * 1.5);
             camera.lookAt(center);
@@ -47,6 +50,10 @@
             // Render the scene once
             renderer.render(scene, camera);
         });
+
+        // Create an axis helper
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
 
         // Add animation loop to update controls
         function animate() {
